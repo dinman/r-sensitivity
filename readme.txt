@@ -2,11 +2,11 @@ D.Inman
 10172016
 
 This is built under R version 3.3.1
-libraries: dplyr, data.table, kSamples
-This should run from the directory structure in git
+libraries need to be installed using install.packages ("")
+libraries used: dplyr, data.table, kSamples
+This should run from the directory on git
 
-*note - variable names are lowercase, input files are name-speciic, outputs and inputs are named generically - results should be removed from 
-	this directory and renamed elsewhere
+*note - variable names are lowercase, input files are name-speciic
 
 Monte Carlo Filtering R files
 
