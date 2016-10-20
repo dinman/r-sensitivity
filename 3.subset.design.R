@@ -40,7 +40,8 @@ new.set.runs <- data.table (run = sub$run)
 
 new.design <- design.in.bsm.format [(design.in.bsm.format$run %in% new.set.runs$run)]
 
-save (new.design, df,  file = paste (results.path, "new.design.RDA"))
+save (new.design, df, filter,  file = paste (results.path, "new.design.RDA"))
 
-write.csv (new.design, file = paste (results.path, "mcf.filtered.design.csv")) #output this to be run in BSM
+#write.csv (new.design, file = paste (results.path, "mcf.filtered.design.csv")) #output this to be run in BSM
 
+write.csv (filter, file = paste (results.path, "filter.csv"))

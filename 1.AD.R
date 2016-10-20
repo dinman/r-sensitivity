@@ -74,7 +74,7 @@ ad.results <- as.data.table (do.call (rbind, test.results)) #this takes the list
 ad.results <- cbind (B.names, ad.results) #put the factor names in. Need to be careful here to make sure the order did not change
 setnames(ad.results, c("factor", "sim.p.value")) 
 sig.results <- subset (ad.results, ad.results$sim.p.value < 0.05)#subset the AD results based on p-value
-save(ad.results, sig.results, B.list, B.bar.list, B.cdf, file = paste (results.path,"AD.results.RDA"))
+save(ad.results, sig.results, B.list, B.bar.list, B.cdf, B.names, file = paste (results.path,"AD.results.RDA"))
 
 
 
