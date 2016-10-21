@@ -3,10 +3,8 @@
 # D.Inman 10122016
 
 rm(list=ls())
-R_LIBS= ("/home/R/library")
 options(scipen=999) #turn scientific notation off
-setwd("~/GitHub/r-sensitivity/")
-results.path <- ("~/GitHub/r-sensitivity/results/")
+results.path <- ("results")
 #Libraries
 library (data.table)
 library (dplyr)
@@ -18,7 +16,7 @@ boot.samples <- function (numeric.variable, boots) { for (i in 1:boots)
 }}                                                  
 
 #load data
-load (paste (results.path, "ad.results.RDA"))
+load (paste (results.path, "AD.results.RDA", sep="/"))
 
 #loop through the B.list to resample each factor
 LIST <- list()
@@ -61,7 +59,7 @@ setnames (boots, c("permutation", "factor", "B.boot", "permutation2", "factor2",
 bootstrapped.samples <- data.table (permutation = boots$permutation, factor = boots$factor, B.boot = 
                                       boots$B.boot, B.bar.boot = boots$B.bar.boot)
 
-save (bootstrapped.samples, B.sig, B.bar.sig, file = paste (results.path, "bootstrapped.samples.RDA"))
-write.csv (bootstrapped.samples, paste (results.path, "bootstrapped.samples.csv"))
+save (bootstrapped.samples, B.sig, B.bar.sig, file = paste (results.path, "bootstrapped.samples.RDA", sep="/"))
+write.csv (bootstrapped.samples, paste (results.path, "bootstrapped.samples.csv", sep="/"))
 
 

@@ -3,15 +3,13 @@
 # D.Inman 10122016
 
 rm(list=ls())
-R_LIBS= ("/home/R/library")
 options(scipen=999) #turn scientific notation off
-setwd("~/GitHub/r-sensitivity/")
-results.path <- ("~/GitHub/r-sensitivity/results/")
+results.path <- ("results")
 #Libraries
 library (data.table)
 library (dplyr)
 #load data
-load (paste (results.path, "bootstrapped.samples.RDA"))
+load (paste (results.path, "bootstrapped.samples.RDA", sep="/"))
 load ("design.RDA")
 
 #filtering criteria - B-Q3 to Bbar-Q3
@@ -40,8 +38,8 @@ new.set.runs <- data.table (run = sub$run)
 
 new.design <- design.in.bsm.format [(design.in.bsm.format$run %in% new.set.runs$run)]
 
-save (new.design, df, filter,  file = paste (results.path, "new.design.RDA"))
+save (new.design, df, filter,  file = paste (results.path, "new.design.RDA", sep="/"))
 
 #write.csv (new.design, file = paste (results.path, "mcf.filtered.design.csv")) #output this to be run in BSM
 
-write.csv (filter, file = paste (results.path, "filter.csv"))
+write.csv (filter, file = paste (results.path, "filter.csv", sep="/"))
