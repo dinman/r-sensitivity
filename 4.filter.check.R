@@ -3,10 +3,8 @@
 # D.Inman 10122016
 
 rm(list=ls())
-R_LIBS= ("/home/R/library")
 options(scipen=999) #turn scientific notation off
-setwd("~/GitHub/r-sensitivity/")
-results.path <- ("~/GitHub/r-sensitivity/results/")
+results.path <- ("results")
 #Libraries
 library (data.table)
 library (dplyr)
@@ -26,9 +24,9 @@ boot.samples <- function (numeric.variable, boots) { for (i in 1:boots)
 
 
 #load data
-load (paste (results.path, "AD.results.RDA"))
-load (paste (results.path, "bootstrapped.samples.RDA"))
-load (paste (results.path, "new.design.RDA"))
+load (paste (results.path, "AD.results.RDA", sep="/"))
+load (paste (results.path, "bootstrapped.samples.RDA", sep="/"))
+load (paste (results.path, "new.design.RDA", sep="/"))
 
 #now lets take a closer look at our resampled study design
 df.1 <- new.design
