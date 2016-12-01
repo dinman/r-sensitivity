@@ -40,24 +40,28 @@ B.bar.boot.sample <- do.call (cbind, B.bar.boot.sample)
 
 ####################
 # bootstrapped results for the two sets for sig factors only
-dt <- sig.results$factor #significant factors names 
+#dt <- sig.results$factor #significant factors names 
+
+dt <- sig.results
 dt2 <- B.boot.sample #bootstrapped sample for group B
-cols <- (colnames(dt2) %in% dt)#logical, factors in B that are in the significant group
+cols <- (colnames(dt2) %in% dt$factor)#logical, factors in B that are in the significant group
 B.sig <- subset(dt2,,cols)
 cor (B.sig) #test to double check our factors line up
 B.sig.boot <- melt (B.sig)
 rm(dt2, cols)
 
 dt3 <- B.bar.boot.sample #bootstrapped sample for group B.bar
-cols<-(colnames(dt3) %in% dt)#logical, factors in B.bar that are in the significant group
+cols<-(colnames(dt3) %in% dt$factor)#logical, factors in B.bar that are in the significant group
 B.bar.sig<-subset(dt3,,cols)
 cor (B.bar.sig) #test to double check our factors line up
 B.bar.sig.boot <- melt (B.bar.sig)
 
 boots <- cbind(B.sig.boot, B.bar.sig.boot)
-setnames (boots, c("permutation", "factor", "B.boot", "permutation2", "factor2", "B.bar.boot"))
+boots <- merge (boots, dt$sim.p.value)
+
+setnames (boots, c("permutation", "factor", "B.boot", "permutation2", "factor2", "B.bar.boot", "p.value"))
 bootstrapped.samples <- data.table (permutation = boots$permutation, factor = boots$factor, B.boot = 
-                                      boots$B.boot, B.bar.boot = boots$B.bar.boot)
+                                      boots$B.boot, B.bar.boot = boots$B.bar.boot, p.value = boots$p.value)
 
 save (bootstrapped.samples, B.sig, B.bar.sig, file = paste (results.path, "bootstrapped.samples.RDA", sep="/"))
 write.csv (bootstrapped.samples, paste (results.path, "bootstrapped.samples.csv", sep="/"))
