@@ -5,6 +5,9 @@
 #.Rprofile
 .Rproj.user
 
+# Data
+results/*.csv
+
 # OS X Files
 .DS_Store
 
