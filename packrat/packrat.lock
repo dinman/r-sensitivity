@@ -65,11 +65,23 @@ Source: CRAN
 Version: 0.4.8-1
 Hash: 6ad605ba7b4b476d84be6632393f5765
 
+Package: plyr
+Source: CRAN
+Version: 1.8.4
+Hash: ce3897d2ea6dabdb2c0a217b25f5fe99
+Requires: Rcpp
+
 Package: pryr
 Source: CRAN
 Version: 0.1.2
 Hash: d04239b7314171687d58ccd8a0570951
 Requires: Rcpp, stringr
+
+Package: reshape2
+Source: CRAN
+Version: 1.4.2
+Hash: 85d9947f8a5e187dff7f18265b96cb13
+Requires: Rcpp, plyr, stringr
 
 Package: stringi
 Source: CRAN
