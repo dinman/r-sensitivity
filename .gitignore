@@ -1,0 +1,22 @@
+# R files
+.RData
+.Rhistory
+.Rapp.history
+#.Rprofile
+.Rproj.user
+
+# Data
+results/*.csv
+
+# OS X Files
+.DS_Store
+
+# Other OS Files
+*.swp
+
+# Local Config File
+local.R
+
+# packrat
+packrat/lib*/
+
