@@ -13,10 +13,20 @@ setwd ("~/GitHub/r-sensitivity/shiny_scratch/")
 source ("get.ad.R")
 
 #load the study design
-load ("foo.vbsa.design.RDA")
+print("Loading design...")
+load ("sampled_design.ca.sludge.fixedfactornew.RDA")
+names(vbsa.design)[names(vbsa.design) == "run"] <- "run_id"
+names(vbsa.design)[names(vbsa.design) == "variable"] <- "factor"
+
 
 #load the study results
-load ("foo.data.RDA")
+print("Loading results...")
+load ("sampled_results.ca.sludge.fixedfactornew.RDA")
+results.2040 <- energy.wtot[which(energy.wtot$time == 2040), ]
+total.results.2040 <- results.2040[which(results.2040$type_energy == "sludge.total energy"), ]
+ordered <- total.results.2040[order(total.results.2040$value), ]
+ordered$order_id <- seq.int(nrow(ordered))
+out <- ordered[, c("run_id", "value", "order_id")]
 setnames (out, c("run_id", "result", "vbl"))
 
 #shiny
@@ -66,13 +76,22 @@ server <- function(input, output) {
   })  
   
   output$ad.results <- renderTable ({
+    if (is.null (input$plot1_brush)) {
+      print ("B not selected")
+      return(NULL)
+    }
     
-    df <- as.data.table ( brushedPoints(out, input$plot1_brush))
-    
-    get.ad (selection = df, design = vbsa.design, boots = 5)
-      
-    
-  })
+    withProgress(message = "Calculation in progress \n", value = 0, {
+      df <- as.data.table ( brushedPoints(out, input$plot1_brush))
+      selected <- out[out$run_id %in% df$run_id, ]
+      results <- get.ad (selection = df, design = vbsa.design, boots = 5, design.melted = TRUE)
+      results_round <- results 
+      results_round$B.med <-round(results$B.med, 3)
+      results_round$B.bar.med <-round(results$B.bar.med, 3)
+      print(head(results_round))
+      return(results_round)
+    })
+  }, digits=3)
 }
   
 
