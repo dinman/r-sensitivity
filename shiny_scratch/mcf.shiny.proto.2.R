@@ -15,6 +15,7 @@ source ("get.ad.R")
 #load the study design
 print("Loading design...")
 load ("sampled_design.ca.sludge.fixedfactornew.RDA")
+vbsa.design <- filtered_design
 names(vbsa.design)[names(vbsa.design) == "run"] <- "run_id"
 names(vbsa.design)[names(vbsa.design) == "variable"] <- "factor"
 
