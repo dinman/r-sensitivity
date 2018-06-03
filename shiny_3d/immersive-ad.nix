@@ -13,8 +13,8 @@ stdenv.mkDerivation rec {
     rPackages.GGally
     rPackages.ggplot2
     rPackages.kSamples
-    rPackages.memo
-    rPackages.plotrix
+  # rPackages.memo
+  # rPackages.plotrix
     rPackages.shiny
     rPackages.shinyjs
   ]

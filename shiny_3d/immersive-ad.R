@@ -1,9 +1,7 @@
 require(data.table)
-require(memo)
 require(ggplot2)
 require(GGally)
 require(kSamples)
-require(plotrix)
 require(shiny)
 require(shinyjs)
 
@@ -116,15 +114,14 @@ server <- function(input, output, session) {
   values <- reactiveValues(ids=data.table(run_id=numeric()))
 
   output$scatter <- renderPlot({
-    label <- input$variable
     if (iplotAvailable && as.logical(input$iplot) && !plotty_connected())
       plotty_init()
     projection <- project()
     if (iplotAvailable && as.logical(input$iplot) && plotty_connected()) {
       iplot(
-          projection[, input$x],
-          projection[, input$y],
-          projection[, input$z],
+          projection[, input$x, with=FALSE],
+          projection[, input$y, with=FALSE],
+          projection[, input$z, with=FALSE],
           w_size=0.005,
           id=1,
           xlab=input$x,
@@ -152,11 +149,13 @@ server <- function(input, output, session) {
         lower=list(continuous=wrap("points", alpha=max(0.05, min(1, 5000 / n[1])), size=0.1, color=cs)),
       )
     }
+    # TODO: Consider adding a plotly option.
   })
 
   observeEvent(input$test, {
+    projection <- isolate(project())
     if (iplotAvailable && as.logical(input$iplot) && plotty_connected()) {
-      values$ids <- data.table(run_id=project()[iselected(1), "run_id"])
+      values$ids <- projection[iselected(1), "run_id", with=FALSE]
     } else
       # FIXME: Add brushing to the plots in the browser.
       values$ids <- data.table(run_id=sample(unique(vbsa.design$run_id), 1000))
