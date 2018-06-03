@@ -2,11 +2,16 @@ require(data.table)
 require(memo)
 require(ggplot2)
 require(GGally)
+require(kSamples)
 require(plotrix)
 require(shiny)
 require(shinyjs)
 
-iplotAvailable <- FALSE #require(iplot)
+
+source("get.ad.R")
+
+
+iplotAvailable <- require(iplot)
 
 
 load("../shiny_scratch/sampled_design.ca.sludge.fixedfactornew.RDA")
@@ -42,23 +47,16 @@ ui <- {
     titlePanel("Local Sensitivity Analysis of a Dataset Using Anderson-Darling"),
 
     fluidRow(
-      column(3, radioButtons("iplot", label="Output", choices=list(Browser=FALSE, PlottyR=TRUE), selected=FALSE),
+      column(3, column(12, column(6, radioButtons("iplot", label="Output", choices=list(Browser=FALSE, PlottyR=TRUE), selected=FALSE)),
+                           column(6, actionButton("test", label="Run Test"))
+                      ),
                 selectInput("x", label=h5("X Axis"), choices=variableChoices, selected=variableChoices[length(variableChoices) - 2]),
                 selectInput("y", label=h5("Y Axis"), choices=variableChoices, selected=variableChoices[length(variableChoices) - 1]),
                 selectInput("z", label=h5("Z Axis"), choices=variableChoices, selected=variableChoices[length(variableChoices) - 0]),
                 selectInput("t", label=h5("Year"  ), choices=timeChoices    , selected=timeChoices    [length(timeChoices    ) - 0])
                 
             ),
-      column(9, plotOutput(outputId="scatter",
-                           brush = brushOpts(
-                                     id = "plot1_brush",
-                                     fill = "pink",
-                                     stroke = "black",
-                                     clip = TRUE,
-                                     delay = 100
-                                   )
-                )
-            )
+      column(9, plotOutput(outputId="scatter"))
     ),
 
     fluidRow(
@@ -70,7 +68,14 @@ ui <- {
       $(document).on("keypress", function(e) {
         Shiny.onInputChange("keydata", e.which + "_" + new Date());
       });
-    ')
+    '),
+
+    fluidRow (
+      column(width = 6,
+        h4("Anderson-Darling"),
+        tableOutput("ad.results") 
+      )
+    )
 
   )
 
@@ -104,38 +109,71 @@ server <- function(input, output, session) {
       shiftSelection(session, "t"  , input$t, timeChoices    , -1)
   })
 
+  project <- reactive({
+    dataset[time == input$t, c("run_id", input$x, input$y, input$z), with=FALSE]
+  })
+
+  values <- reactiveValues(ids=data.table(run_id=numeric()))
+
   output$scatter <- renderPlot({
     label <- input$variable
     if (iplotAvailable && as.logical(input$iplot) && !plotty_connected())
       plotty_init()
+    projection <- project()
     if (iplotAvailable && as.logical(input$iplot) && plotty_connected()) {
       iplot(
-          dataset[, input$x],
-          dataset[, input$y],
-          dataset[, input$z],
+          projection[, input$x],
+          projection[, input$y],
+          projection[, input$z],
           w_size=0.005,
           id=1,
           xlab=input$x,
           ylab=input$y,
           zlim=input$z
       )
-      itooltips(as.character(dataset$run_id))
+      itooltips(as.character(projection$run_id))
+    }
+    if (FALSE)
+      # TODO: Should there be an option to turn off the plots in the browser?
       plot.new()
-    } else {
-      projection <- dataset[time == input$t, c(input$x, input$y, input$z), with=FALSE]
+    else {
       colnames(projection) <- gsub("\\.", "_", colnames(projection))
       colnames(projection) <- gsub("\\[", "_", colnames(projection))
       colnames(projection) <- gsub("]", "_"  , colnames(projection))
       colnames(projection) <- gsub(" ", "_"  , colnames(projection))
       n <- dim(projection)
+      cs <- rep("black", dim(projection)[1])
+      if (!is.null(values$ids))
+        cs[projection$run_id %in% values$ids$run_id] <- "orange"
       ggpairs(
         projection,
-        columns=1:3,
+        columns=2:4,
         upper=list(continuous="density"),
-        lower=list(continuous=wrap("points", alpha=max(0.05, min(1, 5000 / n[1])), size=0.1)),
+        lower=list(continuous=wrap("points", alpha=max(0.05, min(1, 5000 / n[1])), size=0.1, color=cs)),
       )
     }
   })
+
+  observeEvent(input$test, {
+    if (iplotAvailable && as.logical(input$iplot) && plotty_connected()) {
+      values$ids <- data.table(run_id=project()[iselected(1), "run_id"])
+    } else
+      # FIXME: Add brushing to the plots in the browser.
+      values$ids <- data.table(run_id=sample(unique(vbsa.design$run_id), 1000))
+  })
+
+  output$ad.results <- renderTable({
+    if (is.null(values$ids) || dim(values$ids)[1] < 10)
+      return(NULL)
+    withProgress(message = "Calculation in progress \n", value = 0, {
+      results <- get.ad (selection=values$ids, design=vbsa.design, boots=5, design.melted=TRUE)
+      results_round <- results 
+      results_round$B.med <-round(results$B.med, 3)
+      results_round$B.bar.med <-round(results$B.bar.med, 3)
+      return(results_round)
+    })
+  }, digits=3)
+
 }
 
 
