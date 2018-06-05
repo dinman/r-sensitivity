@@ -12,8 +12,8 @@ source("get.ad.R")
 iplotAvailable <- require(iplot)
 
 
-load("../shiny_scratch/sampled_design.ca.sludge.fixedfactornew.RDA")
-load("../shiny_scratch/sampled_results.ca.sludge.fixedfactornew.RDA")
+load("../shiny_scratch/sampled_design.rotus.sludge.ratereturn.31may.RDA")
+load("../shiny_scratch/sampled_results.rotus.sludge.ratereturn.31may.RDA")
 vbsa.design <- filtered_design
 rm(filtered_design)
 
@@ -24,7 +24,7 @@ timeChoices <- unique(energy.wtot$time)
 
 dataset <- merge(
              dcast(data.table(energy.wtot), run_id + time ~ type_energy, value.var="value"),
-             dcast(data.table(vbsa.design), run_id        ~ factor     , value.var="value")
+             dcast(data.table(vbsa.design), run_id        ~ factor     , value.var="value.factor")
            )
 
 
