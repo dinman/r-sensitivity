@@ -111,24 +111,31 @@ server <- function(input, output, session) {
     dataset[time == input$t, c("run_id", input$x, input$y, input$z), with=FALSE]
   })
 
-  values <- reactiveValues(ids=data.table(run_id=numeric()))
+  values <- reactiveValues(ids=data.table(run_id=numeric()), last=list(x="", y="", z=""))
 
   output$scatter <- renderPlot({
     if (iplotAvailable && as.logical(input$iplot) && !plotty_connected())
       plotty_init()
     projection <- project()
     if (iplotAvailable && as.logical(input$iplot) && plotty_connected()) {
-      iplot(
-          projection[, input$x, with=FALSE],
-          projection[, input$y, with=FALSE],
-          projection[, input$z, with=FALSE],
-          w_size=0.005,
-          id=1,
-          xlab=input$x,
-          ylab=input$y,
-          zlim=input$z
-      )
-      itooltips(as.character(projection$run_id))
+      if (input$x != values$last$x || input$y != values$last$y || input$z != values$last$z) {
+        iplot(
+            projection[[input$x]],
+            projection[[input$y]],
+            projection[[input$z]],
+            id=1,
+            xlab=input$x,
+            ylab=input$y,
+            zlab=input$z,
+            col="orange",
+            wx_lim=c(-1.25, 1.25),
+            wy_lim=c( 0.25, 1.75),
+            wz_lim=c( 0.00,-1.50),
+            w_size=0.004
+        )
+        itooltips(as.character(projection$run_id), id=1)
+        values$last <- list(x=input$x, y=input$y, z=input$z)
+      }
     }
     if (FALSE)
       # TODO: Should there be an option to turn off the plots in the browser?
@@ -136,8 +143,8 @@ server <- function(input, output, session) {
     else {
       colnames(projection) <- gsub("\\.", "_", colnames(projection))
       colnames(projection) <- gsub("\\[", "_", colnames(projection))
-      colnames(projection) <- gsub("]", "_"  , colnames(projection))
-      colnames(projection) <- gsub(" ", "_"  , colnames(projection))
+      colnames(projection) <- gsub("]"  , "_", colnames(projection))
+      colnames(projection) <- gsub(" "  , "_", colnames(projection))
       n <- dim(projection)
       cs <- rep("black", dim(projection)[1])
       if (!is.null(values$ids))
