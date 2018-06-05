@@ -111,14 +111,14 @@ server <- function(input, output, session) {
     dataset[time == input$t, c("run_id", input$x, input$y, input$z), with=FALSE]
   })
 
-  values <- reactiveValues(ids=data.table(run_id=numeric()), last=list(x="", y="", z=""))
+  values <- reactiveValues(ids=data.table(run_id=numeric()), last=list(x="", y="", z="", t=""))
 
   output$scatter <- renderPlot({
     if (iplotAvailable && as.logical(input$iplot) && !plotty_connected())
       plotty_init()
     projection <- project()
     if (iplotAvailable && as.logical(input$iplot) && plotty_connected()) {
-      if (input$x != values$last$x || input$y != values$last$y || input$z != values$last$z) {
+      if (input$x != values$last$x || input$y != values$last$y || input$z != values$last$z || input$t != values$last$t) {
         iplot(
             projection[[input$x]],
             projection[[input$y]],
@@ -134,7 +134,7 @@ server <- function(input, output, session) {
             w_size=0.004
         )
         itooltips(as.character(projection$run_id), id=1)
-        values$last <- list(x=input$x, y=input$y, z=input$z)
+        values$last <- list(x=input$x, y=input$y, z=input$z, t=input$t)
       }
     }
     if (FALSE)
