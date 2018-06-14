@@ -5,8 +5,9 @@ require(kSamples)
 require(shiny)
 require(shinyjs)
 
+setwd ("~/ws/src/r-sensitivity/shiny_3d")
 
-source("get.ad.R")
+source("get.mood.R")
 
 
 iplotAvailable <- require(iplot)
@@ -42,12 +43,13 @@ ui <- {
 
     useShinyjs(),
 
-    titlePanel("Local Sensitivity Analysis of a Dataset Using Anderson-Darling"),
+    titlePanel("Local Sensitivity Analysis of a Dataset Using Mood"),
 
     fluidRow(
       column(3, column(12, column(6, radioButtons("iplot", label="Output", choices=list(Browser=FALSE, PlottyR=TRUE), selected=FALSE)),
                            column(6, actionButton("test", label="Run Test"))
                       ),
+                selectInput("study_name", label=h5("Study Name"), choices=list("ca.sludge", "rotus.sludge", "htl.sludge"), selected="ca.sludge"), 
                 selectInput("x", label=h5("X Axis"), choices=variableChoices, selected=variableChoices[length(variableChoices) - 2]),
                 selectInput("y", label=h5("Y Axis"), choices=variableChoices, selected=variableChoices[length(variableChoices) - 1]),
                 selectInput("z", label=h5("Z Axis"), choices=variableChoices, selected=variableChoices[length(variableChoices) - 0]),
@@ -70,7 +72,7 @@ ui <- {
 
     fluidRow (
       column(width = 6,
-        h4("Anderson-Darling"),
+        h4("Results from Mood"),
         tableOutput("ad.results") 
       )
     )
@@ -108,6 +110,7 @@ server <- function(input, output, session) {
   })
 
   project <- reactive({
+    
     dataset[time == input$t, c("run_id", input$x, input$y, input$z), with=FALSE]
   })
 
@@ -172,7 +175,8 @@ server <- function(input, output, session) {
     if (is.null(values$ids) || dim(values$ids)[1] < 10)
       return(NULL)
     withProgress(message = "Calculation in progress \n", value = 0, {
-      results <- get.ad (selection=values$ids, design=vbsa.design, boots=5, design.melted=TRUE)
+      #results <- get.ad (selection=values$ids, design=vbsa.design, boots=5, design.melted=TRUE)
+      results <- run.mood(selection=values$ids, design=vbsa.design, design.melted=TRUE, alpha=0.95)
       results_round <- results 
       results_round$B.med <-round(results$B.med, 3)
       results_round$B.bar.med <-round(results$B.bar.med, 3)
@@ -186,10 +190,13 @@ server <- function(input, output, session) {
 options(browser="echo")
 
 
-args <- commandArgs(TRUE)
+runApp(list(ui=ui, server=server))
 
-if (length(args) == 2)
-  runApp(
-    list(ui=ui, server=server),
-    host=args[1], port=as.numeric(args[2])
-  )
+# args <- commandArgs(TRUE)
+# args[1] <- "insightz.hpc.nrel.gov"
+# args[2] <- 3902
+# if (length(args) == 2)
+#   runApp(
+#     list(ui=ui, server=server),
+#     host=args[1], port=as.numeric(args[2])
+#   )
