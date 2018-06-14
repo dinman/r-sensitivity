@@ -7,26 +7,12 @@ require(shinyjs)
 
 setwd ("~/ws/src/r-sensitivity/shiny_3d")
 
+study_extension = "ratereturn.31may.fixpng"
+
 source("get.mood.R")
 
 
 iplotAvailable <- require(iplot)
-
-
-load("../shiny_scratch/sampled_design.ca.sludge.fixedfactornew.RDA")
-load("../shiny_scratch/sampled_results.ca.sludge.fixedfactornew.RDA")
-vbsa.design <- filtered_design
-rm(filtered_design)
-
-
-variableChoices <- c(unique(vbsa.design$factor), as.character(unique(energy.wtot$type_energy)))
-
-timeChoices <- unique(energy.wtot$time)
-
-dataset <- merge(
-             dcast(data.table(energy.wtot), run_id + time ~ type_energy, value.var="value"),
-             dcast(data.table(vbsa.design), run_id        ~ factor     , value.var="value")
-           )
 
 
 shiftSelection <- function(session, inputId, value, values, delta) {
@@ -49,7 +35,7 @@ ui <- {
       column(3, column(12, column(6, radioButtons("iplot", label="Output", choices=list(Browser=FALSE, PlottyR=TRUE), selected=FALSE)),
                            column(6, actionButton("test", label="Run Test"))
                       ),
-                selectInput("study_name", label=h5("Study Name"), choices=list("ca.sludge", "rotus.sludge", "htl.sludge"), selected="ca.sludge"), 
+                selectInput("study_name", label=h5("Study Name"), choices=list("ca.sludge", "rotus.sludge", "rotus.sludge.htl"), selected="ca.sludge"), 
                 selectInput("x", label=h5("X Axis"), choices=variableChoices, selected=variableChoices[length(variableChoices) - 2]),
                 selectInput("y", label=h5("Y Axis"), choices=variableChoices, selected=variableChoices[length(variableChoices) - 1]),
                 selectInput("z", label=h5("Z Axis"), choices=variableChoices, selected=variableChoices[length(variableChoices) - 0]),
@@ -89,6 +75,49 @@ server <- function(input, output, session) {
   if (!iplotAvailable)
     disable("iplot")
 
+  
+  get_data <- reactive({
+    if (is.null(input$study_name)){
+      return(NULL)
+    }
+    withProgress(message = "Loading data \n", value = 0, {
+      if (input$study_name == "rotus.sludge.htl") {
+        study_extension = "4jun.fixpng"
+      }
+      
+      filename_wesys <- paste("sampled_results", input$study_name, study_extension, "RDA", sep=".")
+      file <- paste("../shiny_scratch", filename_wesys, sep="/")
+      incProgress(amount=0.5)
+      load(file)
+
+      
+      filename_study <- paste("sampled_design", input$study_name, study_extension, "RDA", sep=".")
+      file <- paste("../shiny_scratch", filename_study, sep="/")
+      load(file)
+
+      vbsa.design <- filtered_design
+      rm(filtered_design)
+      colnames(vbsa.design)[which(names(vbsa.design) == "value.factor")] <- "value"
+      
+      
+      incProgress(amount=0.3)
+      
+      variableChoices <- c(unique(vbsa.design$factor), as.character(unique(energy.wtot$type_energy)))
+      
+      timeChoices <- unique(energy.wtot$time)
+      
+      dataset <- merge(
+        dcast(data.table(energy.wtot), run_id + time ~ type_energy, value.var="value"),
+        dcast(data.table(vbsa.design), run_id        ~ factor     , value.var="value")
+      )
+
+      incProgress(amount=0.2)
+      
+      return(dataset)
+    })
+  })
+
+  
   observeEvent(input$keydata, {
     k <- sub("_.*$", "", input$keydata)
     if (k == "120")
@@ -110,7 +139,7 @@ server <- function(input, output, session) {
   })
 
   project <- reactive({
-    
+    dataset <- get_data()
     dataset[time == input$t, c("run_id", input$x, input$y, input$z), with=FALSE]
   })
 
